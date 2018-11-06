@@ -32,8 +32,8 @@ GameObject:
   - component: {fileID: 54602518584570792}
   - component: {fileID: 114819948779966334}
   m_Layer: 0
-  m_Name: Tank
-  m_TagString: Red
+  m_Name: RedTank
+  m_TagString: Tank
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -235,7 +235,8 @@ MonoBehaviour:
   fleeDistance: 400
   tooCloseForComfortDistance: 100
   evasionDistance: 50
-  colliderRadius: 500
+  spottingRange: 500
+  friendlyTransforms: []
 --- !u!195 &195902888141115816
 NavMeshAgent:
   m_ObjectHideFlags: 1
