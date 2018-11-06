@@ -32,7 +32,7 @@ public class SimpleFSM : FSM
     public float fleeDistance;
     public float tooCloseForComfortDistance;
     public float evasionDistance;
-    public float colliderRadius = 1000;
+    public float spottingRange = 500;
     private List<Transform> tanks = new List<Transform>();
     private GameObject closestTank;
 
@@ -42,8 +42,8 @@ public class SimpleFSM : FSM
 
     private NavMeshAgent navMeshAgent;
 
-    //private Transform[] friendlyTransforms;
-    //private Transform[] enemyTransforms;
+    public Transform[] friendlyTransforms;
+    private Transform[] enemyTransforms;
 
 
     //Initialize the Finite state machine for the NPC tank
@@ -62,17 +62,17 @@ public class SimpleFSM : FSM
         navMeshAgent = GetComponent<NavMeshAgent>();
         initialTankSpeed = navMeshAgent.speed;
 
-        //enemyTransforms = GameObject.FindGameObjectsWithTag("Tank").
-        //        Where((o) => !friendlyTransforms.Contains(o.transform)).
-        //        Select((o) => o.transform).
-        //        ToArray();
+        enemyTransforms = GameObject.FindGameObjectsWithTag("Tank").
+                Where((o) => !friendlyTransforms.Contains(o.transform)).
+                Select((o) => o.transform).
+                ToArray();
 
         if (gameObject.CompareTag("Red"))
         {
             SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
             sphereCollider.isTrigger = true;
             sphereCollider.center = Vector3.zero;
-            sphereCollider.radius = colliderRadius * 5;
+            sphereCollider.radius = spottingRange * 5;
         }
 
         //Get the turret of the tank
@@ -112,25 +112,25 @@ public class SimpleFSM : FSM
             navMeshAgent.destination = new Vector3(Random.Range(500, 2500), 0, Random.Range(500, 2500));
         }
 
-        //foreach (Transform curEnemy in enemyTransforms)
-        //{
-        //    RaycastHit hit;
-        //    Vector3 direction = curEnemy.transform.position - transform.position;
-        //    if (Physics.Raycast(turret.transform.position, direction, out hit, colliderRadius * 5))
-        //    {
-        //        Debug.DrawRay(turret.transform.position, direction, Color.red);
+        foreach (Transform curEnemy in enemyTransforms)
+        {
+            RaycastHit hit;
+            Vector3 direction = curEnemy.transform.position - transform.position;
+            if (Physics.Raycast(turret.transform.position, direction, out hit, spottingRange * 5))
+            {
+                Debug.DrawRay(turret.transform.position, direction, Color.red);
 
-        //        if (hit.transform.CompareTag(curEnemy.tag))
-        //        {
-        //            closestTank = hit.transform.gameObject;
-        //            curState = FSMState.Chase;
-        //        }
-        //        else
-        //        {
-        //            curState = FSMState.Patrol;
-        //        }
-        //    }
-        //}
+                if (hit.transform.CompareTag(curEnemy.tag))
+                {
+                    closestTank = hit.transform.gameObject;
+                    curState = FSMState.Chase;
+                }
+                else
+                {
+                    curState = FSMState.Patrol;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -155,12 +155,17 @@ public class SimpleFSM : FSM
             {
                 navMeshAgent.speed = initialTankSpeed / 4;
             }
+            else if (distanceToTank < 100)
+            {
+                navMeshAgent.speed = initialTankSpeed;
+                curState = FSMState.Flee;
+            }
             else
             {
                 navMeshAgent.speed = initialTankSpeed;
             }
 
-            if (distanceToTank > colliderRadius)
+            if (distanceToTank > spottingRange * 5)
             {
                 curState = FSMState.Patrol;
             }
@@ -196,7 +201,17 @@ public class SimpleFSM : FSM
     /// Fleeing state
     /// </summary>
     protected void UpdateFleeState() {
+        float distanceToDestination = Vector3.Distance(transform.position, navMeshAgent.destination);
+        if (distanceToDestination < 100)
+        {
+            navMeshAgent.destination = new Vector3(Random.Range(500, 2500), 0, Random.Range(500, 2500));
+        }
 
+        float distanceToClosestTank = Vector3.Distance(transform.position, closestTank.transform.position);
+        if (distanceToClosestTank > 200)
+        {
+            curState = FSMState.Patrol;
+        }
     }
 
     /// <summary>
@@ -239,28 +254,28 @@ public class SimpleFSM : FSM
 
     private void OnTriggerStay(Collider other)
     {
-        switch (other.tag)
-        {
-            case "Blue":
-            case "Yellow":
-            case "Green":
-            case "Tank":
-                RaycastHit hit;
-                Vector3 direction = other.transform.position - transform.position;
-                if (Physics.Raycast(turret.transform.position, direction, out hit, colliderRadius * 5))
-                {
-                    if (hit.transform.CompareTag(other.tag))
-                    {
-                        closestTank = hit.transform.gameObject;
-                        curState = FSMState.Chase;
-                    }
-                    else
-                    {
-                        curState = FSMState.Patrol;
-                    }
-                }
-                break;
-        }
+        //switch (other.tag)
+        //{
+        //    case "Blue":
+        //    case "Yellow":
+        //    case "Green":
+        //    case "Tank":
+        //        RaycastHit hit;
+        //        Vector3 direction = other.transform.position - transform.position;
+        //        if (Physics.Raycast(turret.transform.position, direction, out hit, colliderRadius * 5))
+        //        {
+        //            if (hit.transform.CompareTag(other.tag))
+        //            {
+        //                closestTank = hit.transform.gameObject;
+        //                curState = FSMState.Chase;
+        //            }
+        //            else
+        //            {
+        //                curState = FSMState.Patrol;
+        //            }
+        //        }
+        //        break;
+        //}
     }
 
     /// <summary>
