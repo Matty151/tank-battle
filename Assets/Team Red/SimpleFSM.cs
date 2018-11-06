@@ -70,15 +70,7 @@ namespace Red
             enemyTransforms = GameObject.FindGameObjectsWithTag("Tank").
                     Where((o) => !friendlyTransforms.Contains(o.transform)).
                     Select((o) => o.transform).
-                    ToArray();
-
-            if (gameObject.CompareTag("Red"))
-            {
-                SphereCollider sphereCollider = gameObject.AddComponent<SphereCollider>();
-                sphereCollider.isTrigger = true;
-                sphereCollider.center = Vector3.zero;
-                sphereCollider.radius = spottingRange * 5;
-            }
+                    ToArray();            
 
             //Get the turret of the tank
             turret = gameObject.transform.GetChild(0).transform;
@@ -124,8 +116,6 @@ namespace Red
                 Vector3 direction = curEnemy.transform.position - transform.position;
                 if (Physics.Raycast(turret.transform.position, direction, out hit, spottingRange * 5))
                 {
-                    Debug.DrawRay(turret.transform.position, direction, Color.red);
-
                     if (hit.transform.CompareTag(curEnemy.tag))
                     {
                         closestTank = hit.transform.gameObject;
@@ -260,39 +250,14 @@ namespace Red
             //Reduce health
             if (collision.gameObject.tag == "Bullet")
             {
-                health -= collision.gameObject.GetComponent<Bullet>().damage;
+                //health -= collision.gameObject.GetComponent<Bullet>().damage;
+                health -= 25;
 
                 if (health <= 50)
                 {
                     navMeshAgent.speed = initialTankSpeed / 2;
                 }
             }
-        }
-
-        private void OnTriggerStay(Collider other)
-        {
-            //switch (other.tag)
-            //{
-            //    case "Blue":
-            //    case "Yellow":
-            //    case "Green":
-            //    case "Tank":
-            //        RaycastHit hit;
-            //        Vector3 direction = other.transform.position - transform.position;
-            //        if (Physics.Raycast(turret.transform.position, direction, out hit, colliderRadius * 5))
-            //        {
-            //            if (hit.transform.CompareTag(other.tag))
-            //            {
-            //                closestTank = hit.transform.gameObject;
-            //                curState = FSMState.Chase;
-            //            }
-            //            else
-            //            {
-            //                curState = FSMState.Patrol;
-            //            }
-            //        }
-            //        break;
-            //}
         }
 
         /// <summary>
